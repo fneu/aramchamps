@@ -34,7 +34,7 @@ class ChampButton(QToolButton):
         self.setFixedSize(QSize(108,124))
         self.setIconSize(QSize(100,100))
 
-        self.active_icon = QIcon(f"img\{self.champ_name}.png")
+        self.active_icon = QIcon(os.path.abspath(os.path.join(os.path.abspath(__file__), os.path.pardir, os.path.pardir, os.path.pardir, os.path.pardir, "img", f"{self.champ_name}.png")))
         pixmap = self.active_icon.pixmap(max(self.active_icon.availableSizes()))
         image = pixmap.toImage()
         grayscale = image.convertToFormat(QImage.Format_Grayscale8)
@@ -207,7 +207,7 @@ class MyScrollArea(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.layout = FlowLayout()
-        for file_name in os.listdir('img/'):
+        for file_name in os.listdir(os.path.abspath(os.path.join(os.path.abspath(__file__), os.path.pardir, os.path.pardir, os.path.pardir, os.path.pardir, "img"))):
             champ_name = file_name[:-4]
             tool_button = ChampButton(champ_name)
             self.layout.addWidget(tool_button)
