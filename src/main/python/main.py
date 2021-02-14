@@ -23,9 +23,10 @@ with open(CONFIG_PATH, 'r') as config_file:
         CONFIG = yaml_config
 
 class ChampButton(QToolButton):
-    def __init__(self, champ_name):
+    def __init__(self, champ_name, img_dir):
         super().__init__()
         self.champ_name = champ_name
+        self.img_dir = img_dir
         self.initUI()
     
     def initUI(self):
@@ -34,7 +35,7 @@ class ChampButton(QToolButton):
         self.setFixedSize(QSize(108,124))
         self.setIconSize(QSize(100,100))
 
-        self.active_icon = QIcon(os.path.abspath(os.path.join(os.path.abspath(__file__), os.path.pardir, os.path.pardir, os.path.pardir, os.path.pardir, "img", f"{self.champ_name}.png")))
+        self.active_icon = QIcon(os.path.join(self.img_dir, f"{self.champ_name}.png"))
         pixmap = self.active_icon.pixmap(max(self.active_icon.availableSizes()))
         image = pixmap.toImage()
         grayscale = image.convertToFormat(QImage.Format_Grayscale8)
@@ -200,16 +201,16 @@ class FlowLayout(QLayout):
 
 
 class MyScrollArea(QScrollArea):
-    def __init__(self, parent=None):
+    def __init__(self, img_dir, parent=None):
         super().__init__(parent)
         self.setWidgetResizable(True)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.layout = FlowLayout()
-        for file_name in os.listdir(os.path.abspath(os.path.join(os.path.abspath(__file__), os.path.pardir, os.path.pardir, os.path.pardir, os.path.pardir, "img"))):
+        for file_name in os.listdir(img_dir):
             champ_name = file_name[:-4]
-            tool_button = ChampButton(champ_name)
+            tool_button = ChampButton(champ_name, img_dir)
             self.layout.addWidget(tool_button)
         
         scroll = QWidget()
@@ -222,7 +223,7 @@ if __name__ == '__main__':
     window = QWidget()
     window_layout = QVBoxLayout()
     #window_layout.addWidget(QPushButton("fuck"))  # add filter/search bar here maybe?
-    window_layout.addWidget(MyScrollArea())
+    window_layout.addWidget(MyScrollArea(appctxt.get_resource()))
     window.setLayout(window_layout)
 
 
