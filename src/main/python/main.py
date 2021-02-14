@@ -1,12 +1,70 @@
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 from PyQt5.QtGui import QIcon, QImage, QPixmap
-from PyQt5.QtCore import Qt, QPoint, QRect, QSize
+from PyQt5.QtCore import Qt, QPoint, QRect, QSize, pyqtSlot
 from PyQt5.QtWidgets import QWidget, QLayout, QLayoutItem, QStyle, QSizePolicy, QMainWindow, QPushButton, QScrollArea, QFrame, QVBoxLayout, QToolButton
 
 import os
 import sys
 import typing
+import yaml
 
+
+CONFIG_PATH = os.path.join(os.environ['APPDATA'], 'AramChamps', 'champs.yaml')
+
+os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+if not os.path.exists(CONFIG_PATH):
+    with open(CONFIG_PATH, 'w') as config_file:
+        yaml.dump([], config_file)
+
+CONFIG = []
+with open(CONFIG_PATH, 'r') as config_file:
+    yaml_config = yaml.load(config_file, Loader=yaml.SafeLoader)
+    if yaml_config:
+        CONFIG = yaml_config
+
+class ChampButton(QToolButton):
+    def __init__(self, champ_name):
+        super().__init__()
+        self.champ_name = champ_name
+        self.initUI()
+    
+    def initUI(self):
+        self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.setText(self.champ_name)
+        self.setFixedSize(QSize(108,124))
+        self.setIconSize(QSize(100,100))
+
+        self.active_icon = QIcon(f"img\{self.champ_name}.png")
+        pixmap = self.active_icon.pixmap(max(self.active_icon.availableSizes()))
+        image = pixmap.toImage()
+        grayscale = image.convertToFormat(QImage.Format_Grayscale8)
+        pixmap = QPixmap.fromImage(grayscale)
+        self.inactive_icon = QIcon(pixmap)
+
+        self.set_icon()
+
+        self.clicked.connect(self.on_click)
+    
+    def set_icon(self):
+        global CONFIG
+        if self.champ_name in CONFIG:
+            self.setStyleSheet('color: red')
+            self.setIcon(self.inactive_icon)
+        else:
+            self.setStyleSheet("")
+            self.setIcon(self.active_icon)
+
+    def on_click(self):
+        global CONFIG
+        if self.champ_name in CONFIG:
+            CONFIG.remove(self.champ_name)
+        else:
+            CONFIG.append(self.champ_name)
+        
+        with open(CONFIG_PATH, 'w') as config_file:
+            yaml.dump(CONFIG, config_file)
+        
+        self.set_icon()
 
 class FlowLayout(QLayout):
     def __init__(self, parent: QWidget=None, margin: int=-1, hSpacing: int=-1, vSpacing: int=-1):
@@ -151,20 +209,8 @@ class MyScrollArea(QScrollArea):
         self.layout = FlowLayout()
         for file_name in os.listdir('img/'):
             champ_name = file_name[:-4]
-            tb = QToolButton()
-            tb.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-            tb.setText(champ_name)
-            tb.setFixedSize(QSize(108,124))
-            tb.setIconSize(QSize(100,100))
-            icon = QIcon(f"img\{file_name}")
-
-            pixmap = icon.pixmap(max(icon.availableSizes()))
-            image = pixmap.toImage()
-            grayscale = image.convertToFormat(QImage.Format_Grayscale8)
-            pixmap = QPixmap.fromImage(grayscale)
-            
-            tb.setIcon(QIcon(pixmap))
-            self.layout.addWidget(tb)
+            tool_button = ChampButton(champ_name)
+            self.layout.addWidget(tool_button)
         
         scroll = QWidget()
         scroll.setLayout(self.layout)
