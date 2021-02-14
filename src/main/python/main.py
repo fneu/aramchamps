@@ -223,7 +223,7 @@ if __name__ == '__main__':
     window = QWidget()
     window_layout = QVBoxLayout()
     #window_layout.addWidget(QPushButton("fuck"))  # add filter/search bar here maybe?
-    window_layout.addWidget(MyScrollArea(appctxt.get_resource()))
+    window_layout.addWidget(MyScrollArea(appctxt.get_resource("img")))
     window.setLayout(window_layout)
 
 
